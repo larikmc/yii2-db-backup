@@ -6,7 +6,7 @@ use Yii;
 
 class Module extends \yii\base\Module
 {
-    public string $controllerNamespace = 'larikmc\\yii2dbbackup\\web\\controllers';
+    public $controllerNamespace = 'larikmc\\yii2dbbackup\\web\\controllers';
 
     public string $tableName = '{{%backup_job}}';
     public string $backupDir = '@runtime/backups/db';
