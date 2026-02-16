@@ -1,10 +1,10 @@
 <?php
 
-namespace soft2soft\yii2dbbackup\web\controllers;
+namespace larikmc\yii2dbbackup\web\controllers;
 
 use RuntimeException;
-use soft2soft\yii2dbbackup\models\BackupJob;
-use soft2soft\yii2dbbackup\services\StorageInstaller;
+use larikmc\yii2dbbackup\models\BackupJob;
+use larikmc\yii2dbbackup\services\StorageInstaller;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
@@ -269,16 +269,16 @@ class BackupController extends Controller
         return is_file($cli) ? $cli : $binary;
     }
 
-    private function getModuleInstance(): \soft2soft\yii2dbbackup\Module
+    private function getModuleInstance(): \larikmc\yii2dbbackup\Module
     {
         $module = Yii::$app->getModule('dbbackup');
-        if (!$module instanceof \soft2soft\yii2dbbackup\Module) {
+        if (!$module instanceof \larikmc\yii2dbbackup\Module) {
             throw new RuntimeException("Module 'dbbackup' is not configured.");
         }
         return $module;
     }
 
-    private function ensureStorageReady(\soft2soft\yii2dbbackup\Module $module): void
+    private function ensureStorageReady(\larikmc\yii2dbbackup\Module $module): void
     {
         (new StorageInstaller($module))->ensureTable();
     }

@@ -9,7 +9,7 @@
   },
   "autoload": {
     "psr-4": {
-      "soft2soft\\yii2dbbackup\\": "src/"
+      "larikmc\\yii2dbbackup\\": "src/"
     }
   }
 }

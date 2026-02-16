@@ -1,12 +1,12 @@
 <?php
 
-namespace soft2soft\yii2dbbackup;
+namespace larikmc\yii2dbbackup;
 
 use Yii;
 
 class Module extends \yii\base\Module
 {
-    public string $controllerNamespace = 'soft2soft\\yii2dbbackup\\web\\controllers';
+    public string $controllerNamespace = 'larikmc\\yii2dbbackup\\web\\controllers';
 
     public string $tableName = '{{%backup_job}}';
     public string $backupDir = '@runtime/backups/db';

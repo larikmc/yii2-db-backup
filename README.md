@@ -39,8 +39,8 @@ composer update larikmc/yii2-db-backup
 ```php
 'modules' => [
     'dbbackup' => [
-        'class' => soft2soft\yii2dbbackup\Module::class,
-        'controllerNamespace' => 'soft2soft\\yii2dbbackup\\web\\controllers',
+        'class' => larikmc\yii2dbbackup\Module::class,
+        'controllerNamespace' => 'larikmc\\yii2dbbackup\\web\\controllers',
         'backupDir' => '@runtime/backups/db',
         'dumpBinary' => '', // путь к mariadb-dump/mysqldump, если нужен явный
         'retentionDays' => 14,
@@ -57,7 +57,7 @@ composer update larikmc/yii2-db-backup
 ```php
 'controllerMap' => [
     'dbbackup/backup' => [
-        'class' => soft2soft\yii2dbbackup\console\controllers\BackupController::class,
+        'class' => larikmc\yii2dbbackup\console\controllers\BackupController::class,
     ],
 ],
 ```
@@ -68,7 +68,7 @@ composer update larikmc/yii2-db-backup
 
 Если хотите управлять схемой только через миграции:
 - отключите автосоздание: `'autoCreateTable' => false`
-- примените миграцию `soft2soft\yii2dbbackup\migrations\m260216_000001_create_backup_job_table`
+- примените миграцию `larikmc\yii2dbbackup\migrations\m260216_000001_create_backup_job_table`
 
 ## API
 

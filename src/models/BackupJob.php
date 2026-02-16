@@ -1,8 +1,8 @@
 <?php
 
-namespace soft2soft\yii2dbbackup\models;
+namespace larikmc\yii2dbbackup\models;
 
-use soft2soft\yii2dbbackup\Module;
+use larikmc\yii2dbbackup\Module;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;

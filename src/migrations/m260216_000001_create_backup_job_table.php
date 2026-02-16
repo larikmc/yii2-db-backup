@@ -1,6 +1,6 @@
 <?php
 
-namespace soft2soft\yii2dbbackup\migrations;
+namespace larikmc\yii2dbbackup\migrations;
 
 use yii\db\Migration;
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace soft2soft\yii2dbbackup\services;
+namespace larikmc\yii2dbbackup\services;
 
-use soft2soft\yii2dbbackup\Module;
+use larikmc\yii2dbbackup\Module;
 use Yii;
 
 class StorageInstaller

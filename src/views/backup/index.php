@@ -3,7 +3,7 @@
 /** @var yii\web\View $this */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-use soft2soft\yii2dbbackup\models\BackupJob;
+use larikmc\yii2dbbackup\models\BackupJob;
 use yii\grid\GridView;
 use yii\helpers\Html;
 

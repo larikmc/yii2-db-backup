@@ -1,10 +1,10 @@
 <?php
 
-namespace soft2soft\yii2dbbackup\console\controllers;
+namespace larikmc\yii2dbbackup\console\controllers;
 
-use soft2soft\yii2dbbackup\models\BackupJob;
-use soft2soft\yii2dbbackup\services\BackupExecutor;
-use soft2soft\yii2dbbackup\services\StorageInstaller;
+use larikmc\yii2dbbackup\models\BackupJob;
+use larikmc\yii2dbbackup\services\BackupExecutor;
+use larikmc\yii2dbbackup\services\StorageInstaller;
 use Yii;
 use yii\console\Controller;
 use yii\console\ExitCode;
@@ -14,7 +14,7 @@ class BackupController extends Controller
     public function actionRun(int $id): int
     {
         $module = Yii::$app->getModule('dbbackup');
-        if (!$module instanceof \soft2soft\yii2dbbackup\Module) {
+        if (!$module instanceof \larikmc\yii2dbbackup\Module) {
             $this->stderr("Module 'dbbackup' is not configured." . PHP_EOL);
             return ExitCode::UNSPECIFIED_ERROR;
         }

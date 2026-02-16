@@ -1,10 +1,10 @@
 <?php
 
-namespace soft2soft\yii2dbbackup\services;
+namespace larikmc\yii2dbbackup\services;
 
 use RuntimeException;
-use soft2soft\yii2dbbackup\Module;
-use soft2soft\yii2dbbackup\models\BackupJob;
+use larikmc\yii2dbbackup\Module;
+use larikmc\yii2dbbackup\models\BackupJob;
 use Yii;
 use yii\helpers\FileHelper;
 
