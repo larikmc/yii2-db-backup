@@ -6,6 +6,7 @@ use RuntimeException;
 use soft2soft\yii2dbbackup\models\BackupJob;
 use soft2soft\yii2dbbackup\services\StorageInstaller;
 use Yii;
+use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\helpers\FileHelper;
@@ -33,6 +34,7 @@ class BackupController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
+                    'index' => ['GET'],
                     'start' => ['POST'],
                     'delete' => ['POST'],
                     'status' => ['GET'],
@@ -43,16 +45,39 @@ class BackupController extends Controller
         ];
     }
 
-    public function actionStart(): array
+    public function actionIndex(): string
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
+        $module = $this->getModuleInstance();
+        $this->ensureStorageReady($module);
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => BackupJob::find()->orderBy(['id' => SORT_DESC]),
+            'pagination' => ['pageSize' => 50],
+        ]);
+
+        return $this->render('@yii2dbbackup/views/backup/index', [
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+
+    public function actionStart()
+    {
+        $asJson = $this->wantsJson();
+        if ($asJson) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+        }
         $module = $this->getModuleInstance();
         $this->ensureStorageReady($module);
 
         $active = (int)BackupJob::find()->where(['status' => [BackupJob::STATUS_QUEUED, BackupJob::STATUS_RUNNING]])->count();
         if ($active >= $module->maxConcurrent) {
-            Yii::$app->response->statusCode = 409;
-            return ['ok' => false, 'error' => 'Another backup is already running.'];
+            if ($asJson) {
+                Yii::$app->response->statusCode = 409;
+                return ['ok' => false, 'error' => 'Another backup is already running.'];
+            }
+
+            Yii::$app->session->setFlash('error', 'Уже выполняется backup-задача.');
+            return $this->redirect(['index']);
         }
 
         $job = new BackupJob([
@@ -67,8 +92,13 @@ class BackupController extends Controller
         ]);
 
         if (!$job->save()) {
-            Yii::$app->response->statusCode = 422;
-            return ['ok' => false, 'error' => 'Unable to create backup job.'];
+            if ($asJson) {
+                Yii::$app->response->statusCode = 422;
+                return ['ok' => false, 'error' => 'Unable to create backup job.'];
+            }
+
+            Yii::$app->session->setFlash('error', 'Не удалось создать backup-задачу.');
+            return $this->redirect(['index']);
         }
 
         try {
@@ -79,11 +109,21 @@ class BackupController extends Controller
             $job->finished_at = time();
             $job->error_text = 'Cannot start background process: ' . $e->getMessage();
             $job->save(false, ['status', 'phase', 'finished_at', 'error_text', 'updated_at']);
-            Yii::$app->response->statusCode = 500;
-            return ['ok' => false, 'error' => $job->error_text];
+            if ($asJson) {
+                Yii::$app->response->statusCode = 500;
+                return ['ok' => false, 'error' => $job->error_text];
+            }
+
+            Yii::$app->session->setFlash('error', 'Ошибка запуска backup: ' . $e->getMessage());
+            return $this->redirect(['index']);
         }
 
-        return ['ok' => true, 'jobId' => (int)$job->id, 'status' => $job->status];
+        if ($asJson) {
+            return ['ok' => true, 'jobId' => (int)$job->id, 'status' => $job->status];
+        }
+
+        Yii::$app->session->setFlash('success', 'Backup запущен. Job ID: ' . (int)$job->id);
+        return $this->redirect(['index']);
     }
 
     public function actionStatus(int $id): array
@@ -116,17 +156,25 @@ class BackupController extends Controller
         return Yii::$app->response->sendFile($job->file_path, basename($job->file_path), ['inline' => false]);
     }
 
-    public function actionDelete(int $id): array
+    public function actionDelete(int $id)
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
+        $asJson = $this->wantsJson();
+        if ($asJson) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+        }
         $this->ensureStorageReady($this->getModuleInstance());
         $job = BackupJob::findOne($id);
         if ($job === null) {
             throw new NotFoundHttpException('Job not found.');
         }
         if (!in_array($job->status, [BackupJob::STATUS_SUCCESS, BackupJob::STATUS_FAILED], true)) {
-            Yii::$app->response->statusCode = 409;
-            return ['ok' => false, 'error' => 'Only completed jobs can be deleted.'];
+            if ($asJson) {
+                Yii::$app->response->statusCode = 409;
+                return ['ok' => false, 'error' => 'Only completed jobs can be deleted.'];
+            }
+
+            Yii::$app->session->setFlash('error', 'Удалять можно только завершенные задачи.');
+            return $this->redirect(['index']);
         }
 
         $deleted = [];
@@ -136,7 +184,12 @@ class BackupController extends Controller
             }
         }
         $job->delete();
-        return ['ok' => true, 'deleted' => $deleted];
+        if ($asJson) {
+            return ['ok' => true, 'deleted' => $deleted];
+        }
+
+        Yii::$app->session->setFlash('success', 'Задача удалена.');
+        return $this->redirect(['index']);
     }
 
     private function serializeJob(BackupJob $job): array
@@ -228,5 +281,13 @@ class BackupController extends Controller
     private function ensureStorageReady(\soft2soft\yii2dbbackup\Module $module): void
     {
         (new StorageInstaller($module))->ensureTable();
+    }
+
+    private function wantsJson(): bool
+    {
+        if (Yii::$app->request->isAjax) {
+            return true;
+        }
+        return strpos((string)Yii::$app->request->headers->get('Accept'), 'application/json') !== false;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace soft2soft\yii2dbbackup;
 
+use Yii;
+
 class Module extends \yii\base\Module
 {
     public string $controllerNamespace = 'soft2soft\\yii2dbbackup\\web\\controllers';
@@ -25,5 +27,6 @@ class Module extends \yii\base\Module
     public function init(): void
     {
         parent::init();
+        Yii::setAlias('@yii2dbbackup', __DIR__);
     }
 }

@@ -72,6 +72,7 @@ composer update soft2soft/yii2-db-backup
 
 ## API
 
+- `GET /dbbackup/backup/index` — встроенная web-страница управления
 - `POST /dbbackup/backup/start` — создать и запустить задачу
 - `GET /dbbackup/backup/status?id=...` — статус одной задачи
 - `GET /dbbackup/backup/list?limit=50` — список задач
@@ -79,6 +80,46 @@ composer update soft2soft/yii2-db-backup
 - `POST /dbbackup/backup/delete?id=...` — удалить задачу и файл
 
 Все web-ответы JSON, кроме `download`.
+
+## Ссылка в админке (готовый HTML)
+
+Если админка одинаковая на всех проектах, можно вставить ссылку прямо в шаблон меню.
+
+### Вариант 1: простая ссылка
+
+```php
+<a href="<?= \yii\helpers\Url::to(['/dbbackup/backup/index']) ?>">Бэкап БД</a>
+```
+
+### Вариант 2: под ваш sidebar-стиль (полный блок с submenu)
+
+```php
+<li class="sz-nav__item">
+    <a href="<?= \yii\helpers\Url::to(['/dbbackup/backup/index']) ?>" class="sz-nav__link">
+        <span class="material-symbols-rounded">backup</span>
+        <span class="sz-nav__label">Бэкап БД</span>
+    </a>
+    <ul class="sz-submenu">
+        <li class="sz-submenu__item"><span class="sz-submenu__title">Бэкап БД</span></li>
+    </ul>
+</li>
+```
+
+### Если хотите URL вида `/admin/db-backup/index`
+
+Добавьте правило в `urlManager` backend:
+
+```php
+'rules' => [
+    'db-backup/<action:\w+>' => 'dbbackup/backup/<action>',
+]
+```
+
+Тогда ссылка будет:
+
+```php
+<a href="<?= \yii\helpers\Url::to(['/db-backup/index']) ?>">Бэкап БД</a>
+```
 
 ## Примечания
 
