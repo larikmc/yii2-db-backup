@@ -10,7 +10,7 @@ class Module extends \yii\base\Module
     public string $backupDir = '@runtime/backups/db';
     public string $dumpBinary = '';
     public int $retentionDays = 14;
-    public int $minFreeSpaceGb = 100;
+    public int $minFreeSpaceGb = 10;
     public int $maxConcurrent = 1;
 
     public string $lockFile = '@runtime/locks/db-backup.lock';

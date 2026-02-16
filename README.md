@@ -44,7 +44,7 @@ composer update soft2soft/yii2-db-backup
         'backupDir' => '@runtime/backups/db',
         'dumpBinary' => '', // путь к mariadb-dump/mysqldump, если нужен явный
         'retentionDays' => 14,
-        'minFreeSpaceGb' => 50,
+        'minFreeSpaceGb' => 2,
         'maxConcurrent' => 1,
         'accessRole' => '@',
         'consoleRoute' => 'dbbackup/backup/run',
