@@ -1,0 +1,16 @@
+{
+  "name": "soft2soft/yii2-db-backup",
+  "description": "Low-load MySQL/MariaDB backup module for Yii2 with async web trigger and console worker.",
+  "type": "yii2-extension",
+  "license": "MIT",
+  "require": {
+    "php": ">=7.4",
+    "yiisoft/yii2": "^2.0.45"
+  },
+  "autoload": {
+    "psr-4": {
+      "soft2soft\\yii2dbbackup\\": "src/"
+    }
+  }
+}
+
