@@ -34,7 +34,95 @@ composer update larikmc/yii2-db-backup
 
 Подключите модуль в web и console приложениях под ID `dbbackup`.
 
-### Пример (web/console config)
+### Готовая вставка для `backend/config/main.php`
+
+```php
+<?php
+
+$params = array_merge(
+    require __DIR__ . '/../../common/config/params.php',
+    require __DIR__ . '/../../common/config/params-local.php',
+    require __DIR__ . '/params.php',
+    require __DIR__ . '/params-local.php'
+);
+
+$defaultDumpBinary = DIRECTORY_SEPARATOR === '\\'
+    ? 'D:\\OpenServer646\\modules\\MariaDB-11.8\\bin\\mysqldump.exe'
+    : '';
+$dumpBinary = getenv('DBBACKUP_DUMP_BINARY') ?: $defaultDumpBinary;
+
+$config = [
+    // ...
+    'modules' => [
+        // ...
+        'dbbackup' => [
+            'class' => larikmc\yii2dbbackup\Module::class,
+            'controllerNamespace' => 'larikmc\\yii2dbbackup\\web\\controllers',
+            'backupDir' => '@runtime/backups/db',
+            'dumpBinary' => $dumpBinary,
+            'retentionDays' => 14,
+            'minFreeSpaceGb' => 2,
+            'maxConcurrent' => 1,
+            'accessRole' => '@',
+            'consoleRoute' => 'dbbackup/backup/run',
+            'autoCreateTable' => true,
+        ],
+    ],
+    'components' => [
+        // ...
+        'urlManager' => [
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'rules' => [
+                'db-backup/<action:\w+>' => 'dbbackup/backup/<action>',
+            ],
+        ],
+    ],
+];
+
+return $config;
+```
+
+### Готовая вставка для `console/config/main.php`
+
+```php
+<?php
+
+$params = array_merge(
+    require __DIR__ . '/../../common/config/params.php',
+    require __DIR__ . '/../../common/config/params-local.php',
+    require __DIR__ . '/params.php',
+    require __DIR__ . '/params-local.php'
+);
+
+$defaultDumpBinary = DIRECTORY_SEPARATOR === '\\'
+    ? 'D:\\OpenServer646\\modules\\MariaDB-11.8\\bin\\mysqldump.exe'
+    : '';
+$dumpBinary = getenv('DBBACKUP_DUMP_BINARY') ?: $defaultDumpBinary;
+
+return [
+    'id' => 'app-console',
+    'basePath' => dirname(__DIR__),
+    'bootstrap' => ['log'],
+    'controllerNamespace' => 'console\\controllers',
+    'modules' => [
+        'dbbackup' => [
+            'class' => larikmc\yii2dbbackup\Module::class,
+            'controllerNamespace' => 'larikmc\\yii2dbbackup\\console\\controllers',
+            'backupDir' => '@runtime/backups/db',
+            'dumpBinary' => $dumpBinary,
+            'retentionDays' => 14,
+            'minFreeSpaceGb' => 2,
+            'maxConcurrent' => 1,
+            'consoleRoute' => 'dbbackup/backup/run',
+            'autoCreateTable' => true,
+        ],
+    ],
+    'params' => $params,
+];
+```
+
+### Пример backend (web)
 
 ```php
 'modules' => [
@@ -48,18 +136,42 @@ composer update larikmc/yii2-db-backup
         'maxConcurrent' => 1,
         'accessRole' => '@',
         'consoleRoute' => 'dbbackup/backup/run',
+        'autoCreateTable' => true,
     ],
 ],
 ```
 
-Для console приложения:
+### Пример console
 
 ```php
-'controllerMap' => [
-    'dbbackup/backup' => [
-        'class' => larikmc\yii2dbbackup\console\controllers\BackupController::class,
+'modules' => [
+    'dbbackup' => [
+        'class' => larikmc\yii2dbbackup\Module::class,
+        'controllerNamespace' => 'larikmc\\yii2dbbackup\\console\\controllers',
+        'backupDir' => '@runtime/backups/db',
+        'dumpBinary' => '',
+        'retentionDays' => 14,
+        'minFreeSpaceGb' => 2,
+        'maxConcurrent' => 1,
+        'consoleRoute' => 'dbbackup/backup/run',
+        'autoCreateTable' => true,
     ],
 ],
+```
+
+### Разные `dumpBinary` для локалки и прода
+
+```php
+$defaultDumpBinary = DIRECTORY_SEPARATOR === '\\'
+    ? 'D:\\OpenServer646\\modules\\MariaDB-11.8\\bin\\mysqldump.exe'
+    : '';
+$dumpBinary = getenv('DBBACKUP_DUMP_BINARY') ?: $defaultDumpBinary;
+```
+
+И в модуле:
+
+```php
+'dumpBinary' => $dumpBinary,
 ```
 
 ## Хранилище (таблица backup_job)
@@ -79,7 +191,7 @@ composer update larikmc/yii2-db-backup
 - `GET /dbbackup/backup/download?id=...` — скачать `.sql.gz`
 - `POST /dbbackup/backup/delete?id=...` — удалить задачу и файл
 
-Все web-ответы JSON, кроме `download`.
+`index` отдает HTML-страницу, `download` отдает файл, служебные endpoints возвращают JSON.
 
 ## Ссылка в админке (готовый HTML)
 
@@ -125,4 +237,5 @@ composer update larikmc/yii2-db-backup
 
 - Для Linux используются `nice/ionice` (если доступны).
 - Если `gzip` binary отсутствует, включается fallback: dump в `.sql` и потоковое сжатие через `zlib`.
-- Имя файла включает домен: `example_com_db_YYYYmmdd_HHMMSS_jobN.sql.gz`.
+- Имя файла включает домен: `example_com_YYYYmmdd_HHMMSS_jN.sql.gz`.
+- Лог конкретной задачи пишется в `@runtime/logs/db-backup-{jobId}.log`.

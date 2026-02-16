@@ -8,23 +8,59 @@ use yii\grid\GridView;
 use yii\helpers\Html;
 
 $this->title = 'Резервные копии БД';
+
+$this->registerCss(<<<CSS
+.dbbackup-index .dbbackup-title {
+    margin: 0 0 20px;
+}
+
+.dbbackup-index .dbbackup-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 20px;
+    padding: 0;
+}
+
+.dbbackup-index .dbbackup-start-form {
+    margin: 0;
+}
+
+.dbbackup-index .dbbackup-actions form,
+.dbbackup-index .dbbackup-row-actions form {
+    background: transparent !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.dbbackup-index .dbbackup-actions .btn {
+    min-height: 38px;
+}
+
+.dbbackup-index .dbbackup-row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.dbbackup-index .dbbackup-row-actions .btn {
+    min-width: 74px;
+}
+CSS);
 ?>
 
 <div class="dbbackup-index">
-    <h1><?= Html::encode($this->title) ?></h1>
+    <h1 class="dbbackup-title"><?= Html::encode($this->title) ?></h1>
 
-    <?php foreach (Yii::$app->session->getAllFlashes() as $type => $message): ?>
-        <div class="alert alert-<?= $type === 'error' ? 'danger' : Html::encode($type) ?>">
-            <?= is_array($message) ? implode('<br>', array_map('strval', $message)) : Html::encode((string)$message) ?>
-        </div>
-    <?php endforeach; ?>
-
-    <p>
-        <?= Html::beginForm(['start'], 'post', ['style' => 'display:inline-block;margin-right:8px;']) ?>
+    <div class="dbbackup-actions">
+        <?= Html::beginForm(['start'], 'post', ['class' => 'dbbackup-start-form']) ?>
         <?= Html::submitButton('Создать backup', ['class' => 'btn btn-primary']) ?>
         <?= Html::endForm() ?>
-        <?= Html::a('Обновить', ['index'], ['class' => 'btn btn-default']) ?>
-    </p>
+        <?= Html::a('Обновить', ['index'], ['class' => 'btn btn-warning']) ?>
+    </div>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -34,24 +70,25 @@ $this->title = 'Резервные копии БД';
                 'attribute' => 'status',
                 'label' => 'Статус',
                 'value' => static function (BackupJob $model): string {
-                    if ($model->status === BackupJob::STATUS_SUCCESS) {
-                        return 'Готово';
-                    }
-
                     $map = [
+                        BackupJob::STATUS_SUCCESS => 'Готово',
                         BackupJob::STATUS_QUEUED => 'В очереди',
                         BackupJob::STATUS_RUNNING => 'Выполняется',
                         BackupJob::STATUS_FAILED => 'Ошибка',
                         BackupJob::STATUS_PRUNED => 'Удален ротацией',
                     ];
-
-                    $status = $map[$model->status] ?? $model->status;
-                    return $model->phase ? ($status . ' (' . $model->phase . ')') : $status;
+                    return $map[$model->status] ?? 'Неизвестно';
                 },
             ],
             [
                 'attribute' => 'file_path',
-                'label' => 'Путь к файлу',
+                'label' => 'Файл',
+                'value' => static function (BackupJob $model): string {
+                    if (!$model->file_path) {
+                        return '(не задано)';
+                    }
+                    return basename((string)$model->file_path);
+                },
             ],
             [
                 'attribute' => 'file_size',
@@ -86,10 +123,9 @@ $this->title = 'Резервные копии БД';
                         $out .= Html::submitButton('Удалить', ['class' => 'btn btn-xs btn-danger']);
                         $out .= Html::endForm();
                     }
-                    return trim($out) ?: '—';
+                    return $out ? Html::tag('div', trim($out), ['class' => 'dbbackup-row-actions']) : '—';
                 },
             ],
         ],
     ]) ?>
 </div>
-

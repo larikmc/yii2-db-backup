@@ -36,8 +36,7 @@ class BackupExecutor
             $this->assertFreeDiskSpace($backupDir, $this->module->minFreeSpaceGb);
 
             $this->setState($job, BackupJob::STATUS_RUNNING, 'dump');
-            $prefix = $this->resolveHostPrefix($job);
-            $name = sprintf('%s_db_%s_job%d.sql.gz', $prefix, date('Ymd_His'), (int)$job->id);
+            $name = $this->buildBackupFileName($job);
             $finalPath = rtrim($backupDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $name;
             $tmpGz = $finalPath . '.part';
             $tmpSql = $finalPath . '.tmp.sql';
@@ -284,5 +283,15 @@ class BackupExecutor
         $safe = trim((string)$safe, '_');
         return $safe !== '' ? $safe : 'site';
     }
-}
 
+    private function buildBackupFileName(BackupJob $job): string
+    {
+        $prefix = $this->resolveHostPrefix($job);
+        if (strlen($prefix) > 24) {
+            $prefix = substr($prefix, 0, 24);
+            $prefix = rtrim($prefix, '_');
+        }
+
+        return sprintf('%s_%s_j%d.sql.gz', $prefix ?: 'site', date('Ymd_His'), (int)$job->id);
+    }
+}
