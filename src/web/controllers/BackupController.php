@@ -4,6 +4,7 @@ namespace soft2soft\yii2dbbackup\web\controllers;
 
 use RuntimeException;
 use soft2soft\yii2dbbackup\models\BackupJob;
+use soft2soft\yii2dbbackup\services\StorageInstaller;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -46,6 +47,7 @@ class BackupController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $module = $this->getModuleInstance();
+        $this->ensureStorageReady($module);
 
         $active = (int)BackupJob::find()->where(['status' => [BackupJob::STATUS_QUEUED, BackupJob::STATUS_RUNNING]])->count();
         if ($active >= $module->maxConcurrent) {
@@ -87,6 +89,7 @@ class BackupController extends Controller
     public function actionStatus(int $id): array
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
+        $this->ensureStorageReady($this->getModuleInstance());
         $job = BackupJob::findOne($id);
         if ($job === null) {
             throw new NotFoundHttpException('Job not found.');
@@ -97,6 +100,7 @@ class BackupController extends Controller
     public function actionList(int $limit = 50): array
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
+        $this->ensureStorageReady($this->getModuleInstance());
         $limit = max(1, min(200, $limit));
         $rows = BackupJob::find()->orderBy(['id' => SORT_DESC])->limit($limit)->all();
         return array_map([$this, 'serializeJob'], $rows);
@@ -104,6 +108,7 @@ class BackupController extends Controller
 
     public function actionDownload(int $id): Response
     {
+        $this->ensureStorageReady($this->getModuleInstance());
         $job = BackupJob::findOne($id);
         if ($job === null || !$job->file_path || !is_file($job->file_path)) {
             throw new NotFoundHttpException('File not found.');
@@ -114,6 +119,7 @@ class BackupController extends Controller
     public function actionDelete(int $id): array
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
+        $this->ensureStorageReady($this->getModuleInstance());
         $job = BackupJob::findOne($id);
         if ($job === null) {
             throw new NotFoundHttpException('Job not found.');
@@ -218,5 +224,9 @@ class BackupController extends Controller
         }
         return $module;
     }
-}
 
+    private function ensureStorageReady(\soft2soft\yii2dbbackup\Module $module): void
+    {
+        (new StorageInstaller($module))->ensureTable();
+    }
+}

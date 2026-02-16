@@ -18,10 +18,12 @@ class Module extends \yii\base\Module
     public string $tmpDir = '@runtime/backups/tmp';
     public string $consoleRoute = 'dbbackup/backup/run';
     public string $accessRole = '@';
+    public bool $autoCreateTable = true;
+    public string $tableCharset = 'utf8mb4';
+    public string $tableCollation = 'utf8mb4_unicode_ci';
 
     public function init(): void
     {
         parent::init();
     }
 }
-

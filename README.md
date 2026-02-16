@@ -62,13 +62,13 @@ composer update soft2soft/yii2-db-backup
 ],
 ```
 
-## Миграция
+## Хранилище (таблица backup_job)
 
-Скопируйте/подключите миграцию:
+По умолчанию таблица создается автоматически при первом запуске (`autoCreateTable = true`).
 
-`soft2soft\yii2dbbackup\migrations\m260216_000001_create_backup_job_table`
-
-и выполните стандартным `yii migrate/up`.
+Если хотите управлять схемой только через миграции:
+- отключите автосоздание: `'autoCreateTable' => false`
+- примените миграцию `soft2soft\yii2dbbackup\migrations\m260216_000001_create_backup_job_table`
 
 ## API
 
@@ -85,4 +85,3 @@ composer update soft2soft/yii2-db-backup
 - Для Linux используются `nice/ionice` (если доступны).
 - Если `gzip` binary отсутствует, включается fallback: dump в `.sql` и потоковое сжатие через `zlib`.
 - Имя файла включает домен: `example_com_db_YYYYmmdd_HHMMSS_jobN.sql.gz`.
-

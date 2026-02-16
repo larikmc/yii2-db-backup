@@ -4,6 +4,7 @@ namespace soft2soft\yii2dbbackup\console\controllers;
 
 use soft2soft\yii2dbbackup\models\BackupJob;
 use soft2soft\yii2dbbackup\services\BackupExecutor;
+use soft2soft\yii2dbbackup\services\StorageInstaller;
 use Yii;
 use yii\console\Controller;
 use yii\console\ExitCode;
@@ -12,6 +13,13 @@ class BackupController extends Controller
 {
     public function actionRun(int $id): int
     {
+        $module = Yii::$app->getModule('dbbackup');
+        if (!$module instanceof \soft2soft\yii2dbbackup\Module) {
+            $this->stderr("Module 'dbbackup' is not configured." . PHP_EOL);
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+        (new StorageInstaller($module))->ensureTable();
+
         $job = BackupJob::findOne($id);
         if ($job === null) {
             $this->stderr("Backup job #{$id} not found." . PHP_EOL);
@@ -21,12 +29,6 @@ class BackupController extends Controller
         if (!in_array($job->status, [BackupJob::STATUS_QUEUED, BackupJob::STATUS_RUNNING], true)) {
             $this->stdout("Backup job #{$id} already finished ({$job->status})." . PHP_EOL);
             return ExitCode::OK;
-        }
-
-        $module = Yii::$app->getModule('dbbackup');
-        if (!$module instanceof \soft2soft\yii2dbbackup\Module) {
-            $this->stderr("Module 'dbbackup' is not configured." . PHP_EOL);
-            return ExitCode::UNSPECIFIED_ERROR;
         }
 
         try {
@@ -39,4 +41,3 @@ class BackupController extends Controller
         }
     }
 }
-
