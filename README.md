@@ -1,4 +1,4 @@
-# soft2soft/yii2-db-backup
+# larikmc/yii2-db-backup
 
 Переиспользуемый модуль бэкапа MySQL/MariaDB для Yii2:
 - запуск из web (`POST /dbbackup/backup/start`)
@@ -19,7 +19,7 @@
     }
   ],
   "require": {
-    "soft2soft/yii2-db-backup": "*"
+    "larikmc/yii2-db-backup": "*"
   }
 }
 ```
@@ -27,7 +27,7 @@
 Затем:
 
 ```bash
-composer update soft2soft/yii2-db-backup
+composer update larikmc/yii2-db-backup
 ```
 
 ## Конфигурация
